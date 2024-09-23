@@ -162,8 +162,16 @@ goto :eof
 :run_dotnet_script
 :: .NET script to upload SonarScan reports to SonarQube
 :: This script includes the following steps:
-:: 1. Build the solution and pass code analysis report to SonarQube.
-:: 2. Run tests, gather code coverage and pass to SonarQube.
+:: 1. Install dotnet tools if not present.
+:: 2. Build the solution and pass code analysis report to SonarQube.
+:: 3. Run tests, gather code coverage and pass to SonarQube.
+
+:: Check if dotnet-sonarscanner is installed, and install if not
+call :check_dotnet_sonarscanner
+
+:: Check if dotnet-coverage is installed, and install if not
+call :check_dotnet_coverage
+
 echo Using Project Name: %PROJECT_NAME%
 echo Using SonarQube Url: %SonarQubeURL%
 echo Using Sonar Token: %SONAR_TOKEN%
@@ -180,3 +188,29 @@ dotnet-coverage collect "dotnet test --no-build" -f xml -o "coverage.xml"
 dotnet sonarscanner end /d:sonar.token=%SONAR_TOKEN%
 
 exit /b
+
+:check_dotnet_sonarscanner
+:: Check if dotnet-sonarscanner is installed, and install if not
+dotnet tool list -g | findstr /I "dotnet-sonarscanner" >nul
+if errorlevel 1 (
+    echo "dotnet-sonarscanner is not installed. Installing now..."
+    dotnet tool install --global dotnet-sonarscanner
+    if errorlevel 1 (
+        echo "Error: Failed to install dotnet-sonarscanner."
+        exit /b 1
+    )
+)
+goto :eof
+
+:check_dotnet_coverage
+:: Check if dotnet-coverage is installed, and install if not
+dotnet tool list -g | findstr /I "dotnet-coverage" >nul
+if errorlevel 1 (
+    echo "dotnet-coverage is not installed. Installing now..."
+    dotnet tool install --global dotnet-coverage
+    if errorlevel 1 (
+        echo "Error: Failed to install dotnet-coverage."
+        exit /b 1
+    )
+)
+goto :eof
