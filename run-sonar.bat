@@ -87,11 +87,18 @@ exit /b
     echo Using Project Name: %PROJECT_NAME%
     echo Using SonarQube Url: %SonarQubeURL%
 
-    SonarScanner.MSBuild.exe begin /k:"%PROJECT_NAME%" ^
-        /d:sonar.host.url=!SONAR_URL! ^
-        /d:sonar.token=%SONAR_TOKEN% ^
-        /d:sonar.cs.opencover.reportsPaths="%COVERAGE_REPORTS%" ^
-        /d:sonar.scanner.scanAll=false
+    if "%COVERAGE_REPORTS%"=="" (
+            SonarScanner.MSBuild.exe begin /k:"%PROJECT_NAME%" ^
+                /d:sonar.host.url=!SONAR_URL! ^
+                /d:sonar.token=%SONAR_TOKEN% ^
+                /d:sonar.scanner.scanAll=false
+        ) else (
+            SonarScanner.MSBuild.exe begin /k:"%PROJECT_NAME%" ^
+                /d:sonar.host.url=!SONAR_URL! ^
+                /d:sonar.token=%SONAR_TOKEN% ^
+                /d:sonar.cs.opencover.reportsPaths="%COVERAGE_REPORTS%" ^
+                /d:sonar.scanner.scanAll=false
+        )
 
     :: Build the entire solution using MSBuild for .NET Framework with minimal verbosity
     call :build_dotnetframework_solution
